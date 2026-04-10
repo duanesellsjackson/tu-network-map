@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TU Network Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root {
+    --gold: #FFFFFF;
+    --gold-light: #FFFFFF;
+    --dark: #0A0A0A;
+    --dark2: #111111;
+    --dark3: #1A1A1A;
+    --dark4: #222222;
+    --text: #E8E8E8;
+    --muted: #888;
+    --accent: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GATE ── */
+  #gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+
+  .gate-inner {
+    width: 90%; max-width: 420px;
+    text-align: center;
+    animation: fadeUp .6s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .gate-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .gate-sub {
+    font-size: 12px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 40px;
+    line-height: 2;
+  }
+
+  .gate-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .gate-input {
+    width: 100%;
+    padding: 16px 20px;
+    background: var(--dark3);
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    text-align: center;
+    letter-spacing: 4px;
+    outline: none;
+    transition: border-color .2s;
+    margin-bottom: 16px;
+  }
+
+  .gate-input:focus { border-color: var(--gold); }
+
+  .gate-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    color: #111;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+  }
+
+  .gate-btn:hover { background: #e0e0e0; }
+  .gate-btn:active { transform: scale(0.98); }
+
+  .gate-error {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #e05a5a;
+    letter-spacing: 1px;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .gate-error.show { opacity: 1; }
+
+  /* ── APP ── */
+  #app { display: none; flex-direction: column; height: 100vh; }
+
+  header {
+    background: var(--dark2);
+    border-bottom: 1px solid #222;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    z-index: 500;
+  }
+
+  .header-brand {
+    display: flex; align-items: baseline; gap: 10px;
+  }
+
+  .brand-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .brand-tag {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .header-right {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .member-count {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 14px;
+    border: 1px solid #333;
+    border-radius: 100px;
+  }
+
+  .member-count span {
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-input {
+    background: var(--dark3);
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 8px 16px 8px 36px;
+    outline: none;
+    width: 220px;
+    transition: border-color .2s, width .3s;
+  }
+
+  .search-input:focus { border-color: var(--gold); width: 260px; }
+
+  .search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 14px; pointer-events: none;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── MAP ── */
+  #map {
+    flex: 1;
+    z-index: 1;
+  }
+
+  /* leaflet overrides */
+  .leaflet-container {
+    background: #0d0d0d !important;
+    font-family: 'DM Sans', sans-serif !important;
+  }
+
+  .leaflet-tile { filter: brightness(0.6) saturate(0.4) hue-rotate(10deg); }
+
+  /* custom marker */
+  .tu-marker {
+    width: 28px; height: 28px;
+    background: var(--gold);
+    border: 2px solid #333;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    color: #111;
+    cursor: pointer;
+    transition: transform .15s;
+    box-shadow: 0 2px 8px rgba(255,255,255,.15);
+  }
+
+  .tu-marker:hover { transform: scale(1.25); }
+
+  .tu-marker-cluster {
+    background: var(--gold);
+    border: 2px solid var(--dark);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(255,255,255,.2);
+  }
+
+  /* popup */
+  .leaflet-popup-content-wrapper {
+    background: var(--dark3) !important;
+    border: 1px solid #333 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,.6) !important;
+    padding: 0 !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 0 !important;
+    width: auto !important;
+  }
+
+  .leaflet-popup-tip {
+    background: var(--dark3) !important;
+  }
+
+  .popup-inner {
+    padding: 16px 18px;
+    min-width: 200px;
+  }
+
+  .popup-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: var(--gold-light);
+    margin-bottom: 4px;
+  }
+
+  .popup-location {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  .popup-phone {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .popup-phone a {
+    color: var(--gold);
+    text-decoration: none;
+  }
+
+  .popup-notes {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid #2a2a2a;
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 300px;
+    background: var(--dark2);
+    border-left: 1px solid #1e1e1e;
+    overflow-y: auto;
+    flex-shrink: 0;
+    z-index: 2;
+  }
+
+  @media (max-width: 640px) {
+    #sidebar { display: none; }
+    .search-input { width: 160px; }
+    .search-input:focus { width: 180px; }
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid #1e1e1e;
+    position: sticky; top: 0;
+    background: var(--dark2);
+    z-index: 10;
+  }
+
+  .member-card {
+    padding: 14px 16px;
+    border-bottom: 1px solid #1a1a1a;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .member-card:hover { background: var(--dark3); }
+  .member-card.active { background: var(--dark4); border-left: 2px solid var(--gold); }
+
+  .card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .card-loc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .card-phone {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .no-loc-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: #2a2a2a;
+    color: #666;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gate-inner">
+    <div class="gate-logo">TU</div>
+    <div class="gate-sub">Titanium University<br>Member Network</div>
+    <div class="gate-label">Enter passphrase to continue</div>
+    <input type="password" class="gate-input" id="passInput" placeholder="••••••••••••" autocomplete="off" />
+    <button class="gate-btn" onclick="checkPass()">Access Network</button>
+    <div class="gate-error" id="gateError">Incorrect passphrase. Try again.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="header-brand">
+      <div class="brand-name">TU Network</div>
+      <div class="brand-tag">Member Map</div>
+    </div>
+    <div class="header-right">
+      <div class="member-count"><span id="visibleCount">107</span> members</div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search name or city..." oninput="filterMembers()" />
+      </div>
+    </div>
+  </header>
+
+  <div class="main">
+    <div id="map"></div>
+    <div id="sidebar">
+      <div class="sidebar-header">All Members</div>
+      <div id="memberList"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const PASSPHRASE = 'TitaniumUniversity';
+
+const MEMBERS = [
+  {name:"An Phan",phone:"469-514-8664",location:"Frisco, TX",lat:33.1507,lng:-96.8236},
+  {name:"Julieanna Hernandez",phone:"386-220-1496",location:"Central Florida, FL",lat:28.5383,lng:-81.3792},
+  {name:"Pat OShaughnessy",phone:"657-477-4695",location:"",lat:null,lng:null,notes:"Alt: 949-291-9755"},
+  {name:"Niccolò Fazio",phone:"214-501-2606",location:"DFW (Prosper), TX",lat:33.2362,lng:-96.8005,notes:"Fazio Mafia"},
+  {name:"LaTericka Anderson",phone:"469-344-9025",location:"Mesquite, TX",lat:32.7668,lng:-96.5992},
+  {name:"Alex Trefney",phone:"231-420-3224",location:"",lat:null,lng:null,notes:"Business dev & training"},
+  {name:"Tim Munson",phone:"817-584-5044",location:"San Antonio, TX",lat:29.4241,lng:-98.4936},
+  {name:"Daniel Tapia Roche",phone:"945-246-0569",location:"Orlando, FL",lat:28.5383,lng:-81.3792},
+  {name:"Michael Goodman",phone:"540-840-8904",location:"Fort Lauderdale, FL",lat:26.1224,lng:-80.1373},
+  {name:"Jason Belue",phone:"864-426-3382",location:"Spartanburg, SC",lat:34.9496,lng:-81.932},
+  {name:"Jacob Bartoszewicz",phone:"224-436-5318",location:"Nashville, TN",lat:36.1627,lng:-86.7816},
+  {name:"Jamil Watts",phone:"609-418-0217",location:"South Jersey, NJ",lat:39.9526,lng:-75.1652},
+  {name:"Cristal McLaughlin",phone:"574-607-5667",location:"N Indiana / S Michigan",lat:41.6764,lng:-86.252},
+  {name:"Cole Fletcher",phone:"512-541-6025",location:"Austin, TX",lat:30.2672,lng:-97.7431},
+  {name:"Mike Francis",phone:"402-926-6442",location:"Omaha, NE",lat:41.2565,lng:-95.9345},
+  {name:"Torrey Madden",phone:"864-534-2259",location:"Greenville, SC",lat:34.8526,lng:-82.394},
+  {name:"Justin Ray",phone:"205-461-5353",location:"Birmingham, AL",lat:33.5207,lng:-86.8025},
+  {name:"Cameron Loughran",phone:"727-777-2858",location:"Tampa, FL",lat:27.9506,lng:-82.4572},
+  {name:"Joe Spain",phone:"614-256-4014",location:"Northeast Ohio, OH",lat:41.4993,lng:-81.6944},
+  {name:"Rachel O",phone:"703-296-4475",location:"N Virginia / DC",lat:38.9072,lng:-77.0369},
+  {name:"David Harris",phone:"203-570-7321",location:"Connecticut, CT",lat:41.6032,lng:-73.0877},
+  {name:"Julius Ramos",phone:"916-220-5929",location:"Roseville, CA",lat:38.7521,lng:-121.288},
+  {name:"Rhonda Avera",phone:"770-300-0020",location:"Savannah, GA",lat:32.0835,lng:-81.0998},
+  {name:"Frankie Medrano",phone:"951-349-3754",location:"Riverside, CA",lat:33.9533,lng:-117.3961},
+  {name:"Tray Flakes",phone:"832-859-4984",location:"Houston, TX",lat:29.7604,lng:-95.3698},
+  {name:"Barbara Royal",phone:"229-231-2970",location:"",lat:null,lng:null},
+  {name:"Stephanie Bane",phone:"603-817-4231",location:"",lat:null,lng:null,notes:"Mobile"},
+  {name:"Danny Washburn",phone:"315-404-4772",location:"Central New York, NY",lat:43.0481,lng:-76.1474},
+  {name:"Efrain Morales",phone:"512-522-7515",location:"Seguin, TX",lat:29.5688,lng:-97.9647},
+  {name:"Matthew Wood",phone:"405-876-3337",location:"Oklahoma City, OK",lat:35.4676,lng:-97.5164,notes:"Property photos/video"},
+  {name:"Kevin Fontecha",phone:"802-535-5919",location:"Vermont, VT",lat:44.5588,lng:-72.5778},
+  {name:"Ngozi Charles",phone:"207-404-1164",location:"Forney, TX",lat:32.7482,lng:-96.4697},
+  {name:"Ryan Palingo",phone:"972-207-4989",location:"DFW, TX",lat:32.7767,lng:-96.797,notes:"Anything DFW"},
+  {name:"Brayden Myers",phone:"316-616-5063",location:"Wichita / Columbia",lat:37.6922,lng:-97.3375},
+  {name:"DeeVonn Chapman",phone:"216-322-1743",location:"Columbus / Cleveland, OH",lat:41.4993,lng:-81.7},
+  {name:"Cathena Campbell",phone:"925-640-4607",location:"East Bay, CA",lat:37.8271,lng:-122.2913},
+  {name:"Michael Soriano",phone:"561-764-7141",location:"West Palm Beach, FL",lat:26.7153,lng:-80.0534},
+  {name:"Joshua Farris",phone:"941-962-9792",location:"Panama City, FL",lat:30.1588,lng:-85.6602},
+  {name:"Evan Darnell",phone:"806-206-3553",location:"Amarillo / Lubbock, TX",lat:35.222,lng:-101.8313},
+  {name:"Yovani Garcia",phone:"727-800-3301",location:"Tampa Bay, FL",lat:27.96,lng:-82.47},
+  {name:"Taylor Ford",phone:"346-328-1017",location:"Houston, TX",lat:29.77,lng:-95.38},
+  {name:"Jim Gallagher",phone:"941-549-7795",location:"Sarasota, FL",lat:27.3364,lng:-82.5307,notes:"Boots on ground"},
+  {name:"Danielle Ellsworth",phone:"209-565-7659",location:"Northern CA",lat:38.5816,lng:-121.4944},
+  {name:"Ashley Ellis",phone:"254-383-5161",location:"Springfield, VA",lat:38.7895,lng:-77.1872},
+  {name:"Tirzah Shambley",phone:"661-317-1846",location:"Texas",lat:31.9686,lng:-99.9018},
+  {name:"Will Clark",phone:"314-456-0520",location:"St. Louis, MO",lat:38.627,lng:-90.1994},
+  {name:"Caesar Lacosta",phone:"415-405-5394",location:"California",lat:37.7749,lng:-122.4194},
+  {name:"J.W. Epstein",phone:"806-681-5167",location:"Amarillo, TX",lat:35.232,lng:-101.84},
+  {name:"Jeremy Demers",phone:"480-290-5880",location:"Phoenix, AZ",lat:33.4484,lng:-112.074},
+  {name:"RJ Rajora",phone:"425-898-3942",location:"Dallas, TX",lat:32.786,lng:-96.8},
+  {name:"Mark Bates",phone:"817-683-7553",location:"Fort Worth, TX",lat:32.7555,lng:-97.3308},
+  {name:"Quinn Zepeda",phone:"805-701-2378",location:"Beaverton, OR",lat:45.4871,lng:-122.8037},
+  {name:"Braden Bissell",phone:"972-482-8711",location:"DFW, TX",lat:32.77,lng:-96.81},
+  {name:"Richard Johnson",phone:"508-202-5882",location:"Tampa, FL",lat:27.94,lng:-82.46},
+  {name:"Beth McNair",phone:"215-987-7122",location:"Philadelphia, PA",lat:39.9526,lng:-75.1652},
+  {name:"Tejas Upadhyay",phone:"778-887-5845",location:"Vancouver, BC (Canada)",lat:49.2827,lng:-123.1207},
+  {name:"Jay Martin",phone:"928-458-9252",location:"Phoenix, AZ",lat:33.46,lng:-112.08},
+  {name:"Gerren Castle",phone:"541-337-1789",location:"Oregon",lat:44.0521,lng:-123.0868},
+  {name:"Jonathan Collins",phone:"443-440-2614",location:"Placentia, CA",lat:33.8722,lng:-117.8703},
+  {name:"Christopher Monter",phone:"832-807-7226",location:"Houston, TX",lat:29.75,lng:-95.36},
+  {name:"Sandra Nesbitt",phone:"214-548-0949",location:"Dallas / FW, TX",lat:32.78,lng:-96.81},
+  {name:"Ryan Gallagher",phone:"856-924-8100",location:"Pinellas County, FL",lat:27.8742,lng:-82.7873},
+  {name:"Matt Bombich",phone:"218-393-8555",location:"Venice, FL",lat:27.0998,lng:-82.4543},
+  {name:"Ervin Baldwin",phone:"804-519-7939",location:"Chesterfield, VA",lat:37.3782,lng:-77.5025},
+  {name:"Jason Strickland",phone:"804-999-4993",location:"",lat:null,lng:null},
+  {name:"Deborah Crigger",phone:"813-521-2852",location:"Tampa / Virginia",lat:27.95,lng:-82.45,notes:"Licensed VA & FL"},
+  {name:"Edwin Perez",phone:"916-720-1632",location:"Sacramento, CA",lat:38.59,lng:-121.5},
+  {name:"Kelly Whited",phone:"407-694-3153",location:"Orlando, FL",lat:28.55,lng:-81.39},
+  {name:"Michael Buttram",phone:"205-240-0485",location:"Charlotte, NC",lat:35.2271,lng:-80.8431},
+  {name:"John Allen",phone:"512-364-5130",location:"",lat:null,lng:null},
+  {name:"Dennis Fassett",phone:"734-224-5977",location:"Metro Detroit, MI",lat:42.3314,lng:-83.0458},
+  {name:"Michael Carter Mucker",phone:"321-626-9550",location:"Merritt Island, FL",lat:28.3458,lng:-80.6698},
+  {name:"Beth Hoffman",phone:"518-365-6481",location:"Illinois / Missouri",lat:39.7817,lng:-89.6501},
+  {name:"Ken Dunn",phone:"754-999-0290",location:"Fort Lauderdale, FL",lat:26.13,lng:-80.14},
+  {name:"Vimean Pen",phone:"978-677-4455",location:"Nashua, NH",lat:42.7654,lng:-71.4676},
+  {name:"Tricia Greer",phone:"865-208-2906",location:"East Tennessee, TN",lat:35.9606,lng:-83.9207},
+  {name:"Travis Gentry",phone:"720-579-7583",location:"Central Oregon / Denver",lat:39.7392,lng:-104.9903},
+  {name:"Kathy Jeffreys",phone:"865-321-5960",location:"Statesville, NC",lat:35.7829,lng:-80.8873},
+  {name:"Jacob Wright",phone:"317-935-4558",location:"Noblesville, IN",lat:40.0456,lng:-86.0086},
+  {name:"Arnold Dieter",phone:"443-761-5711",location:"Baltimore County, MD",lat:39.2904,lng:-76.6122},
+  {name:"Angel Meza",phone:"213-268-1425",location:"Los Angeles, CA",lat:34.0522,lng:-118.2437,notes:"Mighty1re@gmail.com"},
+  {name:"Kevin Stephenson",phone:"856-650-3812",location:"South Jersey, NJ",lat:39.96,lng:-75.17,notes:"Has buyers"},
+  {name:"Becky Dostal",phone:"970-391-7737",location:"Northern Colorado, CO",lat:40.5853,lng:-105.0844},
+  {name:"Ankit Patel",phone:"832-776-4310",location:"Houston, TX",lat:29.76,lng:-95.37},
+  {name:"Chad Overly",phone:"850-356-6218",location:"Pensacola, FL",lat:30.4213,lng:-87.2169},
+  {name:"James Schlupp",phone:"610-972-4315",location:"Oley, PA",lat:40.3815,lng:-75.7635},
+  {name:"Aldrey Francis",phone:"305-440-8059",location:"West Palm Beach, FL",lat:26.72,lng:-80.06},
+  {name:"Joe Pollis",phone:"561-602-0292",location:"Chattanooga, TN",lat:35.0456,lng:-85.3097},
+  {name:"JT T-Lock",phone:"346-804-6327",location:"Houston, TX",lat:29.78,lng:-95.35},
+  {name:"Sarah Lackey",phone:"517-996-2446",location:"Webberville, MI",lat:42.6694,lng:-84.1733},
+  {name:"Bobbi Mehr",phone:"413-687-9924",location:"Mid-Atlantic / Massachusetts",lat:42.3601,lng:-71.0589},
+  {name:"Andrew Guilde",phone:"630-327-2748",location:"Chicago Metro, IL",lat:41.8781,lng:-87.6298},
+  {name:"Keithon Herring",phone:"409-457-4851",location:"Galveston, TX",lat:29.3013,lng:-94.7977},
+  {name:"Josiah Wilson",phone:"512-676-1528",location:"Texas",lat:31.97,lng:-99.91,notes:"Buyer"},
+  {name:"Marc Koronkiewicz",phone:"708-738-9000",location:"Chicago, IL",lat:41.89,lng:-87.64,notes:"Commercial/Creative"},
+  {name:"Allen Akoi",phone:"808-429-2564",location:"",lat:null,lng:null},
+  {name:"Chase Maloney",phone:"423-999-7512",location:"",lat:null,lng:null},
+  {name:"Kevin Hanna",phone:"405-403-3689",location:"",lat:null,lng:null},
+  {name:"Terry Van Why",phone:"570-202-1645",location:"",lat:null,lng:null},
+  {name:"Aarti Mohan",phone:"551-386-7147",location:"",lat:null,lng:null},
+  {name:"Fernando Monserrat",phone:"407-496-0272",location:"Orlando, FL",lat:28.54,lng:-81.38},
+  {name:"Gavin Glenn",phone:"404-956-8096",location:"Kennesaw, GA",lat:34.0234,lng:-84.6157},
+  {name:"Joey Smajd",phone:"706-325-3878",location:"Columbus GA / Auburn-Opelika AL",lat:32.461,lng:-84.9877,notes:"Buyer: Fix & Flips, Land, Curative Title"},
+  {name:"Randy Charlton",phone:"916-354-5660",location:"Sacramento, CA",lat:38.592,lng:-121.502,notes:"Randy@SoundwaveInvestments.com"},
+  {name:"John Hoopingarner",phone:"720-812-4077",location:"Denver, CO",lat:39.749,lng:-104.98},
+];
+
+// ── GATE ──
+function checkPass() {
+  const val = document.getElementById('passInput').value.trim();
+  if (val === PASSPHRASE) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    initMap();
+  } else {
+    const err = document.getElementById('gateError');
+    err.classList.add('show');
+    setTimeout(() => err.classList.remove('show'), 3000);
+  }
+}
+
+document.getElementById('passInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPass();
+});
+
+// ── MAP ──
+let map, markers = [], currentFilter = '';
+
+function initMap() {
+  map = L.map('map', {
+    center: [38, -96],
+    zoom: 4,
+    zoomControl: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 18,
+  }).addTo(map);
+
+  renderAll(MEMBERS);
+  buildSidebar(MEMBERS);
+}
+
+function makeIcon(initials) {
+  return L.divIcon({
+    html: `<div class="tu-marker">${initials}</div>`,
+    className: '',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16],
+  });
+}
+
+function getInitials(name) {
+  const parts = name.split(' ');
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+  return name.slice(0,2).toUpperCase();
+}
+
+function makePopup(m) {
+  return `<div class="popup-inner">
+    <div class="popup-name">${m.name}</div>
+    ${m.location ? `<div class="popup-location">📍 ${m.location}</div>` : ''}
+    <div class="popup-phone">📞 <a href="tel:${m.phone}">${m.phone}</a></div>
+    ${m.notes ? `<div class="popup-notes">${m.notes}</div>` : ''}
+  </div>`;
+}
+
+function renderAll(list) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  list.forEach((m, i) => {
+    if (m.lat && m.lng) {
+      const marker = L.marker([m.lat, m.lng], { icon: makeIcon(getInitials(m.name)) })
+        .bindPopup(makePopup(m), { maxWidth: 280 })
+        .addTo(map);
+      marker._memberId = i;
+      markers.push(marker);
+    }
+  });
+}
+
+function buildSidebar(list) {
+  const container = document.getElementById('memberList');
+  container.innerHTML = '';
+  document.getElementById('visibleCount').textContent = list.length;
+
+  list.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'member-card';
+    card.dataset.idx = i;
+    card.innerHTML = `
+      <div class="card-name">${m.name}</div>
+      <div class="card-loc">${m.location || '<span class="no-loc-badge">No location</span>'}</div>
+      <div class="card-phone">${m.phone}</div>
+    `;
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.member-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      if (m.lat && m.lng) {
+        map.flyTo([m.lat, m.lng], 10, { duration: 1.2 });
+        // find and open popup
+        markers.forEach(mk => {
+          if (mk._memberId === i) mk.openPopup();
+        });
+      }
+    });
+    container.appendChild(card);
+  });
+}
+
+function filterMembers() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = MEMBERS.filter(m =>
+    m.name.toLowerCase().includes(q) ||
+    m.location.toLowerCase().includes(q) ||
+    m.phone.includes(q) ||
+    (m.notes && m.notes.toLowerCase().includes(q))
+  );
+  renderAll(filtered);
+  buildSidebar(filtered);
+}
+</script>
+</body>
+</html>
