@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TU Network · Join the Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #080808;
+    --bg2: #101010;
+    --bg3: #181818;
+    --border: #242424;
+    --text: #EFEFEF;
+    --muted: #666;
+    --white: #FFFFFF;
+    --error: #e05a5a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* header */
+  .top-bar {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 3px;
+    color: var(--white);
+  }
+
+  .back-link {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .back-link:hover { color: var(--white); }
+
+  /* hero */
+  .hero {
+    text-align: center;
+    padding: 60px 24px 48px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 10vw, 72px);
+    letter-spacing: 2px;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  /* form */
+  .form-wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .field {
+    margin-bottom: 20px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .field label .req { color: var(--white); }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color .2s;
+    appearance: none;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--white);
+  }
+
+  .field textarea { resize: vertical; min-height: 90px; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 480px) {
+    .field-row { grid-template-columns: 1fr; }
+  }
+
+  /* checkboxes */
+  .check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .check-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 12px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    text-align: center;
+    min-height: 72px;
+  }
+
+  .check-item:has(input:checked) {
+    border-color: var(--white);
+    background: #1e1e1e;
+  }
+
+  .check-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--white);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .check-item span {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  /* submit */
+  .submit-section {
+    margin-top: 48px;
+    text-align: center;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--white);
+    border: none;
+    border-radius: 10px;
+    color: #111;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+  }
+
+  .submit-btn:hover { background: #e8e8e8; }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .submit-note {
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* success */
+  #successScreen {
+    display: none;
+    text-align: center;
+    padding: 80px 24px;
+    max-width: 500px;
+    margin: 0 auto;
+    animation: fadeUp .5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .success-icon {
+    font-size: 48px;
+    margin-bottom: 24px;
+  }
+
+  .success-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 2px;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+
+  .success-sub {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .success-btn {
+    display: inline-block;
+    padding: 14px 32px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: border-color .2s, color .2s;
+  }
+  .success-btn:hover { border-color: var(--white); color: var(--white); }
+
+  .error-msg {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--error);
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">TU</div>
+  <a href="/index.html" class="back-link">← View Map</a>
+</div>
+
+<div id="formSection">
+  <div class="hero">
+    <div class="hero-eyebrow">Titanium University · Network</div>
+    <div class="hero-title">Join the Map</div>
+    <div class="hero-sub">Open networking. Real conversations. More deals.<br>Drop your info and get pinned.</div>
+  </div>
+
+  <div class="form-wrap">
+
+    <!-- CONTACT -->
+    <div class="section-label">Contact Info</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="First Last" />
+      </div>
+      <div class="field">
+        <label>Phone <span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="555-555-5555" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Second Phone / Office (optional)</label>
+      <input type="tel" id="phone2" placeholder="Alt number" />
+    </div>
+
+    <div class="field">
+      <label>Email (optional)</label>
+      <input type="email" id="email" placeholder="you@email.com" />
+    </div>
+
+    <div class="field">
+      <label>Website (optional)</label>
+      <input type="url" id="website" placeholder="https://yoursite.com" />
+    </div>
+
+    <div class="field">
+      <label>Company / LLC Name (optional)</label>
+      <input type="text" id="company" placeholder="Acme Acquisitions LLC" />
+    </div>
+
+    <!-- LOCATION -->
+    <div class="section-label">Your Market</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>City / Market <span class="req">*</span></label>
+        <input type="text" id="city" placeholder="Dallas, Houston, etc." />
+      </div>
+      <div class="field">
+        <label>State <span class="req">*</span></label>
+        <input type="text" id="state" placeholder="TX" maxlength="2" style="text-transform:uppercase" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Additional Markets (if you cover multiple areas)</label>
+      <input type="text" id="markets" placeholder="e.g. DFW, Houston, San Antonio" />
+    </div>
+
+    <!-- ROLE -->
+    <div class="section-label">What You Do</div>
+
+    <div class="field">
+      <label>I am a... (check all that apply)</label>
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox" name="role" value="Wholesaler" /><span>Wholesaler</span></label>
+        <label class="check-item"><input type="checkbox" name="role" value="Agent/Broker" /><span>Agent / Broker</span></label>
+        <label class="check-item"><input type="checkbox" name="role" value="Flipper" /><span>Flipper</span></label>
+        <label class="check-item"><input type="checkbox" name="role" value="Dispo House" /><span>Dispo House</span></label>
+        <label class="check-item"><input type="checkbox" name="role" value="Cash Buyer" /><span>Cash Buyer</span></label>
+        <label class="check-item"><input type="checkbox" name="role" value="BRRRR/Rental" /><span>BRRRR / Rental</span></label>
+        <label class="check-item"><input type="checkbox" name="role" value="Wholetailer" /><span>Wholetailer</span></label>
+        <label class="check-item"><input type="checkbox" name="role" value="Private Lender" /><span>Private Lender</span></label>
+        <label class="check-item"><input type="checkbox" name="role" value="Other" /><span>Other</span></label>
+      </div>
+    </div>
+
+    <!-- LOOKING FOR -->
+    <div class="section-label">What You're Looking For</div>
+
+    <div class="field">
+      <label>I'm looking for... (check all that apply)</label>
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox" name="looking" value="Deals" /><span>Deals / Contracts</span></label>
+        <label class="check-item"><input type="checkbox" name="looking" value="Buyers" /><span>Cash Buyers</span></label>
+        <label class="check-item"><input type="checkbox" name="looking" value="JV Partners" /><span>JV Partners</span></label>
+        <label class="check-item"><input type="checkbox" name="looking" value="Boots on Ground" /><span>Boots on Ground</span></label>
+        <label class="check-item"><input type="checkbox" name="looking" value="Funding" /><span>Funding / Lenders</span></label>
+        <label class="check-item"><input type="checkbox" name="looking" value="Nationwide Buys" /><span>Nationwide Buys</span></label>
+        <label class="check-item"><input type="checkbox" name="looking" value="Connections" /><span>Just Connecting</span></label>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="section-label">Anything Else</div>
+
+    <div class="field">
+      <label>Notes (optional) — specialty, criteria, what makes you different</label>
+      <textarea id="notes" placeholder="e.g. I buy fix & flips nationwide. Prefer 3/2 SFR under 200k ARV. Fast close."></textarea>
+    </div>
+
+    <div class="submit-section">
+      <button class="submit-btn" onclick="submitForm()">Pin Me to the Map</button>
+      <div class="error-msg" id="errorMsg">Please fill in all required fields.</div>
+      <div class="submit-note">Your info is shared only with TU members who have the passphrase.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div id="successScreen">
+  <div class="success-icon">📍</div>
+  <div class="success-title">You're on the map.</div>
+  <div class="success-sub">Welcome to the network. Your pin is live.<br>Go find your next deal.</div>
+  <a href="/index.html" class="success-btn">View the Map</a>
+</div>
+
+<script>
+async function submitForm() {
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const city = document.getElementById('city').value.trim();
+  const state = document.getElementById('state').value.trim().toUpperCase();
+
+  if (!name || !phone || !city || !state) {
+    const err = document.getElementById('errorMsg');
+    err.style.display = 'block';
+    setTimeout(() => err.style.display = 'none', 4000);
+    return;
+  }
+
+  const roles = [...document.querySelectorAll('input[name="role"]:checked')].map(el => el.value);
+  const looking = [...document.querySelectorAll('input[name="looking"]:checked')].map(el => el.value);
+
+  const member = {
+    name,
+    phone,
+    phone2: document.getElementById('phone2').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    website: document.getElementById('website').value.trim(),
+    company: document.getElementById('company').value.trim(),
+    city,
+    state,
+    markets: document.getElementById('markets').value.trim(),
+    roles: roles.join(', '),
+    looking: looking.join(', '),
+    notes: document.getElementById('notes').value.trim(),
+  };
+
+  const btn = document.querySelector('.submit-btn');
+  btn.textContent = 'Pinning you...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/add-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(member),
+    });
+
+    if (res.ok) {
+      document.getElementById('formSection').style.display = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const data = await res.json();
+      btn.textContent = 'Something went wrong. Try again.';
+      btn.disabled = false;
+      console.error(data);
+    }
+  } catch (err) {
+    btn.textContent = 'Something went wrong. Try again.';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
